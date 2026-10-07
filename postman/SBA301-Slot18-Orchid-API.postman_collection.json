@@ -1,0 +1,599 @@
+{
+  "info": {
+    "name": "SBA301 Slot18 Orchid API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Seed categories first. Run in order. T11 requires SQL SELECT; T12 requires application restart then GET persistedId. The collection leaves one retained orchid for these checks."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "categoryId1",
+      "value": "1"
+    },
+    {
+      "key": "categoryId2",
+      "value": "2"
+    },
+    {
+      "key": "missingId",
+      "value": "999999999"
+    },
+    {
+      "key": "orchidId",
+      "value": ""
+    },
+    {
+      "key": "persistedId",
+      "value": ""
+    },
+    {
+      "key": "retestId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "T05 - POST valid orchid",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/orchids",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orchidName\": \"Cattleya Queen\",\n  \"isNatural\": true,\n  \"orchidDescription\": \"Demo orchid for Slot 18\",\n  \"orchidCategory\": {\n    \"categoryId\": \"{{categoryId1}}\"\n  },\n  \"isAttractive\": true,\n  \"orchidURL\": \"https://example.com/orchid.jpg\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 201\", function () { pm.response.to.have.status(201); });",
+              "var createdOrchidJson = pm.response.json();",
+              "pm.test(\"Generated ID\", function () { pm.expect(createdOrchidJson.orchidID).to.be.above(0); });",
+              "pm.test(\"Correct category\", function () { pm.expect(createdOrchidJson.orchidCategory.categoryId).to.eql(Number(pm.collectionVariables.get(\"categoryId1\"))); });",
+              "pm.collectionVariables.set(\"orchidId\", createdOrchidJson.orchidID);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "T03 - GET after POST",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/orchids/{{orchidId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Saved name and no recursion\", function () { const data = pm.response.json(); pm.expect(data.orchidName).to.eql(\"Cattleya Queen\"); pm.expect(data.orchidCategory).not.to.have.property(\"orchids\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "T01 - GET list",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/orchids"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Array contains created orchid\", function () { const data = pm.response.json(); pm.expect(data).to.be.an(\"array\"); pm.expect(data.some(o => o.orchidID === Number(pm.collectionVariables.get(\"orchidId\")))).to.eql(true); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "T02 - Search case insensitive",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/orchids?name=cAt"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Only matching names\", function () { const data = pm.response.json(); pm.expect(data.length).to.be.above(0); data.forEach(o => pm.expect(o.orchidName.toLowerCase()).to.include(\"cat\")); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "T04 / B6 - GET missing",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/orchids/{{missingId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 404\", function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "T06 / B5 - POST nonexistent category",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/orchids",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orchidName\": \"Cattleya Queen\",\n  \"isNatural\": true,\n  \"orchidDescription\": \"Demo orchid for Slot 18\",\n  \"orchidCategory\": {\n    \"categoryId\": \"{{missingId}}\"\n  },\n  \"isAttractive\": true,\n  \"orchidURL\": \"https://example.com/orchid.jpg\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 400\", function () { pm.response.to.have.status(400); });",
+              "pm.test(\"Category error\", function () { pm.expect(pm.response.text()).to.include(\"Category not found\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "T06 - POST missing category",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/orchids",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orchidName\": \"Invalid\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 400\", function () { pm.response.to.have.status(400); });",
+              "pm.test(\"Required category\", function () { pm.expect(pm.response.text()).to.eql(\"categoryId is required\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "B7 - POST malformed JSON",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/orchids",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"orchidName\":",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 400\", function () { pm.response.to.have.status(400); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "B7 - Retest valid JSON",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/orchids",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orchidName\": \"Cattleya Queen\",\n  \"isNatural\": true,\n  \"orchidDescription\": \"Demo orchid for Slot 18\",\n  \"orchidCategory\": {\n    \"categoryId\": \"{{categoryId1}}\"\n  },\n  \"isAttractive\": true,\n  \"orchidURL\": \"https://example.com/orchid.jpg\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 201\", function () { pm.response.to.have.status(201); });",
+              "pm.collectionVariables.set(\"retestId\", pm.response.json().orchidID);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "B7 - Clean retest orchid",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "{{baseUrl}}/api/orchids/{{retestId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 204\", function () { pm.response.to.have.status(204); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "B8 - Wrong route",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/orchid"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 404\", function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "B8 - Correct route",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/orchids"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "T07 - PUT valid and replace category",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/orchids/{{orchidId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orchidName\": \"Cattleya Queen Updated\",\n  \"isNatural\": false,\n  \"orchidDescription\": \"Updated by PUT\",\n  \"orchidCategory\": {\n    \"categoryId\": \"{{categoryId2}}\"\n  },\n  \"isAttractive\": true,\n  \"orchidURL\": \"https://example.com/orchid-updated.jpg\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"New category\", function () { pm.expect(pm.response.json().orchidCategory.categoryId).to.eql(Number(pm.collectionVariables.get(\"categoryId2\"))); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "T07 - GET after PUT",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/orchids/{{orchidId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"All fields updated\", function () { const o = pm.response.json(); pm.expect(o.orchidName).to.eql(\"Cattleya Queen Updated\"); pm.expect(o.isNatural).to.eql(false); pm.expect(o.isAttractive).to.eql(true); pm.expect(o.orchidDescription).to.eql(\"Updated by PUT\"); pm.expect(o.orchidURL).to.eql(\"https://example.com/orchid-updated.jpg\"); pm.expect(o.orchidCategory.categoryId).to.eql(Number(pm.collectionVariables.get(\"categoryId2\"))); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "T07 - PUT invalid category",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/orchids/{{orchidId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orchidName\": \"Must not be saved\",\n  \"isNatural\": true,\n  \"orchidDescription\": \"Demo orchid for Slot 18\",\n  \"orchidCategory\": {\n    \"categoryId\": \"{{missingId}}\"\n  },\n  \"isAttractive\": true,\n  \"orchidURL\": \"https://example.com/orchid.jpg\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 400\", function () { pm.response.to.have.status(400); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "T07 - GET proves rollback",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/orchids/{{orchidId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Failed update kept saved state\", function () { const o = pm.response.json(); pm.expect(o.orchidName).to.eql(\"Cattleya Queen Updated\"); pm.expect(o.orchidCategory.categoryId).to.eql(Number(pm.collectionVariables.get(\"categoryId2\"))); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "T08 - PUT missing orchid",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/orchids/{{missingId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orchidName\": \"Cattleya Queen Updated\",\n  \"isNatural\": false,\n  \"orchidDescription\": \"Updated by PUT\",\n  \"orchidCategory\": {\n    \"categoryId\": \"{{categoryId2}}\"\n  },\n  \"isAttractive\": true,\n  \"orchidURL\": \"https://example.com/orchid-updated.jpg\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 404\", function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "T09 - DELETE existing",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "{{baseUrl}}/api/orchids/{{orchidId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 204\", function () { pm.response.to.have.status(204); });",
+              "pm.test(\"No response body\", function () { pm.expect(pm.response.text()).to.eql(\"\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "T09 - GET after DELETE",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/orchids/{{orchidId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 404\", function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "T10 - DELETE missing",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "{{baseUrl}}/api/orchids/{{missingId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 404\", function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "T11 / T12 - POST retained orchid for DB and restart verification",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/orchids",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orchidName\": \"Cattleya Queen\",\n  \"isNatural\": true,\n  \"orchidDescription\": \"Demo orchid for Slot 18\",\n  \"orchidCategory\": {\n    \"categoryId\": \"{{categoryId1}}\"\n  },\n  \"isAttractive\": true,\n  \"orchidURL\": \"https://example.com/orchid.jpg\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 201\", function () { pm.response.to.have.status(201); });",
+              "pm.collectionVariables.set(\"persistedId\", pm.response.json().orchidID);",
+              "console.log(\"Use persistedId for SQL verification and GET after restart:\", pm.response.json().orchidID);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "T11 - GET retained orchid",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/orchids/{{persistedId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

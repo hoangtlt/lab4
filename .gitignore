@@ -1,0 +1,8 @@
+target/
+tmp/
+.idea/
+*.iml
+.vscode/
+.env
+tools/native/
+src/main/resources/application-local.properties

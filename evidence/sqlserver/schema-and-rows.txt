@@ -1,0 +1,41 @@
+Changed database context to 'OrchidDB'.
+database_name server_name
+------------- -----------
+OrchidDB LAPTOP-5QHRMIFV\SQL2022
+
+(1 rows affected)
+category_id category_name
+----------- -------------
+1 Cattleya
+2 Dendrobium
+
+(2 rows affected)
+orchid_id orchid_name is_natural is_attractive orchid_description orchid_url category_id category_name
+--------- ----------- ---------- ------------- ------------------ ---------- ----------- -------------
+6 Cattleya Queen 1 1 Demo orchid for Slot 18 https://example.com/orchid.jpg 1 Cattleya
+
+(1 rows affected)
+table_name column_name data_type max_length is_nullable is_identity
+---------- ----------- --------- ---------- ----------- -----------
+orchid_categories category_id bigint 8 0 1
+orchid_categories category_name varchar 100 0 0
+orchids orchid_id bigint 8 0 1
+orchids is_attractive bit 1 1 0
+orchids is_natural bit 1 1 0
+orchids orchid_description varchar 1000 1 0
+orchids orchid_name varchar 150 0 0
+orchids orchid_url varchar 255 1 0
+orchids category_id bigint 8 0 0
+
+(9 rows affected)
+table_name primary_key
+---------- -----------
+orchid_categories PK__orchid_c__D54EE9B44FB4AE6C
+orchids PK__orchids__2ADAF361E012DDD1
+
+(2 rows affected)
+foreign_key child_table child_column parent_table parent_column
+----------- ----------- ------------ ------------ -------------
+FK1nau98c2g1u4qk2nx7fmj0dt5 orchids category_id orchid_categories category_id
+
+(1 rows affected)

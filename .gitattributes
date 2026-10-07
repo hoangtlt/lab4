@@ -1,0 +1,2 @@
+# Evidence giữ whitespace nguyên bản từ Hibernate, Surefire và sqlcmd.
+evidence/** -whitespace

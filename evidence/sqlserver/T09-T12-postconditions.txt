@@ -1,0 +1,10 @@
+Changed database context to 'OrchidDB'.
+orchid_id orchid_name category_id
+--------- ----------- -----------
+6 Cattleya Queen 1
+deleted_orchid_rows
+-------------------
+0
+categories_remain
+-----------------
+2
