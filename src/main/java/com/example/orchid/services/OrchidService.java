@@ -1,7 +1,7 @@
 package com.example.orchid.services;
 
-import com.example.orchid.pojos.Orchid;
-import com.example.orchid.pojos.OrchidCategory;
+import com.example.orchid.entity.Orchid;
+import com.example.orchid.entity.OrchidCategory;
 import com.example.orchid.repositories.IOrchidCategoryRepository;
 import com.example.orchid.repositories.IOrchidRepository;
 import org.springframework.stereotype.Service;

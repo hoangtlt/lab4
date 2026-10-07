@@ -1,9 +1,9 @@
 package com.example.orchid.services;
 
-import com.example.orchid.pojos.Orchid;
-
 import java.util.List;
 import java.util.Optional;
+
+import com.example.orchid.entity.Orchid;
 
 public interface IOrchidService {
     List<Orchid> getAll();

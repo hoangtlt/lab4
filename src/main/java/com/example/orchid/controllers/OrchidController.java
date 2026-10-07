@@ -1,6 +1,6 @@
 package com.example.orchid.controllers;
 
-import com.example.orchid.pojos.Orchid;
+import com.example.orchid.entity.Orchid;
 import com.example.orchid.services.IOrchidService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

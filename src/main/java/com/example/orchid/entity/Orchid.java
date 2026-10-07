@@ -1,4 +1,4 @@
-package com.example.orchid.pojos;
+package com.example.orchid.entity;
 
 import jakarta.persistence.*;
 

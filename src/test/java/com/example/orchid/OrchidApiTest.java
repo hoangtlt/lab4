@@ -1,7 +1,7 @@
 package com.example.orchid;
 
-import com.example.orchid.pojos.Orchid;
-import com.example.orchid.pojos.OrchidCategory;
+import com.example.orchid.entity.Orchid;
+import com.example.orchid.entity.OrchidCategory;
 import com.example.orchid.repositories.IOrchidCategoryRepository;
 import com.example.orchid.repositories.IOrchidRepository;
 import com.fasterxml.jackson.databind.JsonNode;

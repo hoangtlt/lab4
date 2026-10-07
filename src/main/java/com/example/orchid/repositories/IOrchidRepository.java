@@ -1,7 +1,8 @@
 package com.example.orchid.repositories;
 
-import com.example.orchid.pojos.Orchid;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.example.orchid.entity.Orchid;
 
 import java.util.List;
 
